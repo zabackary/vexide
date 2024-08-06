@@ -55,46 +55,32 @@ fn create_main_wrapper(inner: ItemFn) -> proc_macro2::TokenStream {
     };
 
     quote! {
-        #[no_mangle]
-        extern "Rust" fn main() {
+        fn main() -> #ret_type {
             #inner
-            let termination: #ret_type = ::vexide::async_runtime::block_on(
+
+            ::vexide::async_runtime::block_on(
                 #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())
-            );
-            ::vexide::core::program::Termination::report(termination);
+            )
         }
     }
 }
 
-fn make_entrypoint(opts: MacroOpts) -> proc_macro2::TokenStream {
-    let banner_arg = if opts.banner {
-        quote! { true }
-    } else {
-        quote! { false }
-    };
+fn create_code_sig(opts: MacroOpts) -> proc_macro2::TokenStream {
     let code_signature = if let Some(code_sig) = opts.code_sig {
         quote! { #code_sig }
     } else {
-        quote! {  ::vexide::startup::CodeSignature::new(
-            ::vexide::startup::ProgramType::User,
-            ::vexide::startup::ProgramOwner::Partner,
-            ::vexide::startup::ProgramFlags::empty(),
+        quote! {  ::vexide::core::program::CodeSignature::new(
+            ::vexide::core::program::ProgramType::User,
+            ::vexide::core::program::ProgramOwner::Partner,
+            ::vexide::core::program::ProgramFlags::empty(),
         ) }
     };
 
     quote! {
         const _: () = {
-            #[no_mangle]
-            #[link_section = ".boot"]
-            unsafe extern "C" fn _start() {
-                unsafe {
-                    ::vexide::startup::program_entry::<#banner_arg>()
-                }
-            }
-
             #[link_section = ".code_signature"]
             #[used] // This is needed to prevent the linker from removing this object in release builds
-            static __CODE_SIGNATURE: ::vexide::startup::CodeSignature = #code_signature;
+            static CODE_SIGNATURE: ::vexide::core::program::CodeSignature = #code_signature;
         };
     }
 }
@@ -164,12 +150,13 @@ pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as ItemFn);
     let attrs = parse_macro_input!(attrs as Attrs);
     let opts = MacroOpts::from(attrs);
+
     let main_fn = create_main_wrapper(item);
-    let entrypoint = make_entrypoint(opts);
+    let code_sig = create_code_sig(opts);
 
     quote! {
         #main_fn
-        #entrypoint
+        #code_sig
     }
     .into()
 }
@@ -192,8 +179,7 @@ mod test {
         assert_eq!(
             output.to_string(),
             quote! {
-                #[no_mangle]
-                extern "Rust" fn main() {
+                fn main() {
                     async fn main(_peripherals: Peripherals) {
                         println!("Hello, world!");
                     }

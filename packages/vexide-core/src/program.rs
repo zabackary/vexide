@@ -42,10 +42,29 @@ impl<T: Termination, E: Debug> Termination for Result<T, E> {
 /// signature must be at the start of the binary for booting to occur.
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd)]
 pub struct CodeSignature {
+    /// Magic bytes. Should be "VXV5" little-endian.
     pub magic: u32,
+
+    /// Program type
     pub program_type: ProgramType,
+
+    /// Program originator
     pub owner: ProgramOwner,
+
+    /// Program flags
     pub flags: ProgramFlags,
+}
+
+impl CodeSignature {
+    /// Creates a new signature given a program type, owner, and flags.
+    pub const fn new(program_type: ProgramType, owner: ProgramOwner, flags: ProgramFlags) -> Self {
+        Self {
+            magic: vex_sdk::V5_SIG_MAGIC,
+            program_type,
+            owner,
+            flags,
+        }
+    }
 }
 
 // TODO: This impl should probably be TryFrom and not have unreachables
@@ -134,8 +153,4 @@ pub fn exit() -> ! {
     loop {
         core::hint::spin_loop();
     }
-}
-
-extern "Rust" {
-    fn main();
 }
