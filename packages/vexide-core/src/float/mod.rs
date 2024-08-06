@@ -7,7 +7,7 @@
 
 #[cfg(all(
     target_arch = "arm",
-    target_os = "none",
+    target_os = "vexos",
     not(feature = "force_rust_libm")
 ))]
 mod newlib;
