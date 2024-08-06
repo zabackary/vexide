@@ -34,16 +34,19 @@
 //!
 //! Check out our [docs](https://vexide.dev/docs/) for more in-depth usage guides.
 
-#![no_std]
-
 #[cfg(feature = "rt")]
-pub use vexide_runtime as runtime;
+pub use vexide_runtime::{
+    competition,
+    sync,
+    task,
+    time,
+    block_on,
+    init_runtime,
+};
 #[cfg(feature = "devices")]
 pub use vexide_devices as devices;
 #[cfg(feature = "graphics")]
 pub use vexide_graphics as graphics;
-#[cfg(feature = "macro")]
-pub use vexide_macro as r#macro;
 #[cfg(feature = "macro")]
 pub use vexide_macro::main;
 
