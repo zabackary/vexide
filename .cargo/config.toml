@@ -5,5 +5,5 @@ target = "armv7a-vex-v5"
 rustflags = ["-Clink-arg=--export-memory", "-Clink-arg=--import-table"]
 
 [unstable]
-build-std = ["std"]
+build-std = ["std", "panic_abort"]
 build-std-features = ["compiler-builtins-mem"]

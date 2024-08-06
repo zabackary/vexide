@@ -26,7 +26,6 @@ compress = true
 [dependencies]
 vexide-async = { version = "0.1.2", path = "../vexide-async", optional = true }
 vexide-devices = { version = "0.3.0", path = "../vexide-devices", optional = true }
-vexide-panic = { version = "0.1.2", path = "../vexide-panic", optional = true }
 vexide-core = { version = "0.3.0", path = "../vexide-core", optional = true }
 vexide-startup = { version = "0.2.0", path = "../vexide-startup", optional = true }
 vexide-graphics = { version = "0.1.2", path = "../vexide-graphics", optional = true }
@@ -34,7 +33,7 @@ vexide-macro = { version = "0.2.0", path = "../vexide-macro", optional = true }
 vex-sdk = "0.17.0"
 
 [features]
-default = ["async", "devices", "panic", "display_panics", "core", "startup", "macro"]
+default = ["async", "devices", "core", "startup", "macro"]
 
 macro = ["dep:vexide-macro", "startup", "async", "core", "devices"]
 
@@ -50,9 +49,6 @@ devices = ["dep:vexide-devices"]
 graphics = ["dep:vexide-graphics"]
 slint = ["vexide-graphics/slint", "graphics"]
 embedded-graphics = ["vexide-graphics/embedded-graphics", "graphics"]
-
-panic = ["dep:vexide-panic"]
-display_panics = ["vexide-panic/display_panics"]
 
 dangerous_motor_tuning = ["vexide-devices/dangerous_motor_tuning"]
 smart_leds_trait = ["vexide-devices/smart_leds_trait"]
