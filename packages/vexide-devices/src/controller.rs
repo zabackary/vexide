@@ -7,12 +7,23 @@ use core::time::Duration;
 
 use snafu::Snafu;
 use vex_sdk::{
-    vexControllerConnectionStatusGet, vexControllerGet, vexControllerTextSet, V5_ControllerId,
-    V5_ControllerIndex, V5_ControllerStatus,
+    vexCompetitionStatus, vexControllerConnectionStatusGet, vexControllerGet, vexControllerTextSet, V5_ControllerId, V5_ControllerIndex, V5_ControllerStatus
 };
-use vexide_core::{competition, competition::CompetitionMode};
 
 use crate::adi::digital::LogicLevel;
+
+fn validate_competition_control() -> Result<(), ControllerError> {
+    const DISABLED: u32 = 1 << 0;
+    const AUTONOMOUS: u32 = 1 << 1;
+
+    let status = unsafe { vexCompetitionStatus() };
+
+    if (status & AUTONOMOUS) != 0 || (status & DISABLED) != 0 {
+        return Err(ControllerError::CompetitionControl);
+    }
+
+    Ok(())
+}
 
 fn validate_connection(id: ControllerId) -> Result<(), ControllerError> {
     if unsafe {
@@ -35,11 +46,8 @@ pub struct Button {
 impl Button {
     /// Gets the current logic level of a digital input pin.
     pub fn level(&self) -> Result<LogicLevel, ControllerError> {
-        if competition::mode() != CompetitionMode::Driver {
-            return Err(ControllerError::CompetitionControl);
-        }
-
         validate_connection(self.id)?;
+        validate_competition_control()?;
 
         let value = unsafe { vexControllerGet(self.id.into(), self.channel) != 0 };
 
@@ -99,9 +107,7 @@ impl Joystick {
     /// Gets the raw value of the joystick position on its x-axis from [-128, 127].
     pub fn x_raw(&self) -> Result<i8, ControllerError> {
         validate_connection(self.id)?;
-        if competition::mode() != CompetitionMode::Driver {
-            return Err(ControllerError::CompetitionControl);
-        }
+        validate_competition_control()?;
 
         Ok(unsafe { vexControllerGet(self.id.into(), self.x_channel) } as _)
     }
@@ -109,9 +115,7 @@ impl Joystick {
     /// Gets the raw value of the joystick position on its x-axis from [-128, 127].
     pub fn y_raw(&self) -> Result<i8, ControllerError> {
         validate_connection(self.id)?;
-        if competition::mode() != CompetitionMode::Driver {
-            return Err(ControllerError::CompetitionControl);
-        }
+        validate_competition_control()?;
 
         Ok(unsafe { vexControllerGet(self.id.into(), self.y_channel) } as _)
     }

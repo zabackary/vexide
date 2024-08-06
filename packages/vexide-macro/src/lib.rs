@@ -153,31 +153,14 @@ mod test {
     fn toggles_banner_using_parsed_opts() {
         let entrypoint = make_entrypoint(MacroOpts {
             banner: false,
-            code_sig: None,
         });
         assert!(entrypoint.to_string().contains("false"));
         assert!(!entrypoint.to_string().contains("true"));
         let entrypoint = make_entrypoint(MacroOpts {
             banner: true,
-            code_sig: None,
         });
         assert!(entrypoint.to_string().contains("true"));
         assert!(!entrypoint.to_string().contains("false"));
-    }
-
-    #[test]
-    fn uses_custom_code_sig_from_parsed_opts() {
-        let entrypoint = make_entrypoint(MacroOpts {
-            banner: false,
-            code_sig: Some(Ident::new(
-                "__custom_code_sig_ident__",
-                proc_macro2::Span::call_site(),
-            )),
-        });
-        println!("{}", entrypoint.to_string());
-        assert!(entrypoint.to_string().contains(
-            "static __CODE_SIGNATURE : :: vexide :: startup :: CodeSignature = __custom_code_sig_ident__ ;"
-        ));
     }
 
     #[test]

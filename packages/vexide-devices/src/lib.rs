@@ -30,6 +30,8 @@ pub mod position;
 pub mod screen;
 pub mod usd;
 
+pub(crate) mod internal;
+
 use snafu::Snafu;
 
 #[derive(Debug, Snafu)]

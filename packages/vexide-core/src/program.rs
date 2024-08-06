@@ -3,11 +3,11 @@
 
 use core::{convert::Infallible, fmt::Debug, time::Duration};
 
-use vex_sdk::{vexSerialWriteFree, vexSystemExitRequest, vexTasksRun, vcodesig};
+use vex_sdk::{vcodesig, vexSerialWriteFree, vexSystemExitRequest, vexSystemHighResTimeGet, vexTasksRun};
 
 use no_std_io::io::Write;
 
-use crate::{io::{self, stdout}, time::Instant};
+use crate::io::{self, stdout};
 
 /// A that can be implemented for arbitrary return types in the main function.
 pub trait Termination {
@@ -40,11 +40,11 @@ impl<T: Termination, E: Debug> Termination for Result<T, E> {
 /// This function will not instantly exit the program,
 /// but will instead wait 3ms to force the serial buffer to flush.
 pub fn exit() -> ! {
-    let exit_time = Instant::now();
+    let exit_time = unsafe { vexSystemHighResTimeGet() };
     const FLUSH_TIMEOUT: Duration = Duration::from_millis(15);
     unsafe {
         // Force the serial buffer to flush
-        while exit_time.elapsed() < FLUSH_TIMEOUT {
+        while Duration::from_micros(unsafe { vexSystemHighResTimeGet() } - exit_time) < FLUSH_TIMEOUT {
             // If the buffer has been fully flushed, exit the loop
             if vexSerialWriteFree(io::STDIO_CHANNEL) == (crate::io::Stdout::INTERNAL_BUFFER_SIZE as i32) {
                 break;
