@@ -2,7 +2,7 @@
 //!
 //! Provides support for using [`SmartPort`]s as generic serial communication devices.
 
-use no_std_io::io;
+use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
 use vex_sdk::{
     vexDeviceGenericSerialBaudrate, vexDeviceGenericSerialEnable, vexDeviceGenericSerialFlush,
@@ -202,7 +202,12 @@ impl SerialPort {
     }
 }
 
-impl io::Read for SerialPort {
+impl ErrorType for SerialPort {
+    type Error = SerialError;
+}
+
+#[cfg(feature = "std")]
+impl std::io::Read for SerialPort {
     /// Read some bytes from this serial port into the specified buffer, returning
     /// how many bytes were read.
     ///
@@ -218,13 +223,13 @@ impl io::Read for SerialPort {
     ///     sleep(core::time::Duration::from_millis(10)).await;
     /// }
     /// ```
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.validate_port().map_err(|e| match e {
             PortError::Disconnected => {
-                io::Error::new(io::ErrorKind::AddrNotAvailable, "Port does not exist.")
+                std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
             }
-            PortError::IncorrectDevice => io::Error::new(
-                io::ErrorKind::AddrInUse,
+            PortError::IncorrectDevice => std::io::Error::new(
+                std::io::ErrorKind::AddrInUse,
                 "Port is in use as another device.",
             ),
         })?;
@@ -232,8 +237,8 @@ impl io::Read for SerialPort {
         match unsafe {
             vexDeviceGenericSerialReceive(self.device, buf.as_mut_ptr(), buf.len() as i32)
         } {
-            -1 => Err(io::Error::new(
-                io::ErrorKind::Other,
+            -1 => Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
                 "Internal read error occurred.",
             )),
             recieved => Ok(recieved as usize),
@@ -241,24 +246,25 @@ impl io::Read for SerialPort {
     }
 }
 
-impl io::Write for SerialPort {
+#[cfg(feature = "std")]
+impl std::io::Write for SerialPort {
     /// Write a buffer into the serial port's output buffer, returning how many bytes
     /// were written.
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.validate_port().map_err(|e| match e {
             PortError::Disconnected => {
-                io::Error::new(io::ErrorKind::AddrNotAvailable, "Port does not exist.")
+                std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
             }
-            PortError::IncorrectDevice => io::Error::new(
-                io::ErrorKind::AddrInUse,
+            PortError::IncorrectDevice => std::io::Error::new(
+                std::io::ErrorKind::AddrInUse,
                 "Port is in use as another device.",
             ),
         })?;
 
         match unsafe { vexDeviceGenericSerialTransmit(self.device, buf.as_ptr(), buf.len() as i32) }
         {
-            -1 => Err(io::Error::new(
-                io::ErrorKind::Other,
+            -1 => Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
                 "Internal write error occurred.",
             )),
             written => Ok(written as usize),
@@ -272,7 +278,7 @@ impl io::Write for SerialPort {
     ///
     /// If you wish to *clear* both the read and write buffers, you can use
     /// `Self::clear_buffers`.
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
 }
@@ -302,4 +308,10 @@ pub enum SerialError {
         /// The source of the error.
         source: PortError,
     },
+}
+
+impl embedded_io::Error for SerialError {
+    fn kind(&self) -> embedded_io::ErrorKind {
+        embedded_io::ErrorKind::Other
+    }
 }

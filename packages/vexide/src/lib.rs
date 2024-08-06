@@ -36,10 +36,8 @@
 
 #![no_std]
 
-#[cfg(feature = "async")]
-pub use vexide_runtime as async_runtime;
-#[cfg(feature = "core")]
-pub use vexide_core as core;
+#[cfg(feature = "rt")]
+pub use vexide_runtime as runtime;
 #[cfg(feature = "devices")]
 pub use vexide_devices as devices;
 #[cfg(feature = "graphics")]
@@ -52,14 +50,13 @@ pub use vexide_macro::main;
 /// Commonly used features of vexide.
 /// This module is meant to be glob imported.
 pub mod prelude {
-    #[cfg(feature = "async")]
+    #[cfg(feature = "rt")]
     pub use vexide_runtime::{
         block_on,
+        competition::{Compete, CompeteExt},
         task::{spawn, Task},
         time::{sleep, sleep_until},
     };
-    #[cfg(feature = "core")]
-    pub use vexide_core::competition::{Compete, CompeteExt, CompetitionRuntime};
     #[cfg(feature = "devices")]
     pub use vexide_devices::{
         adi::{

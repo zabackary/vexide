@@ -3,7 +3,7 @@ name = "vexide-devices"
 version = "0.3.0"
 edition = "2021"
 license = "MIT"
-description = "High level device bindings for vexide"
+description = "High level V5 hardware bindings for vexide"
 keywords = ["Robotics", "bindings", "vex", "v5"]
 categories = ["api-bindings", "no-std", "science::robotics"]
 repository = "https://github.com/vexide/vexide"
@@ -23,17 +23,18 @@ snafu = { version = "0.8.0", default-features = false, features = [
     "unstable-core-error",
 ] }
 mint = "0.5.9"
-no_std_io = { version = "0.6.0", features = ["alloc"] }
 bitflags = "2.4.2"
 smart-leds-trait = { version = "0.3.0", optional = true }
 nalgebra = { version = "0.32", default-features = false, optional = true, features = [
     "convert-mint",
 ] }
+embedded-io = "0.6.1"
 
 [lints]
 workspace = true
 
 [features]
 dangerous_motor_tuning = []
+std = []
 smart_leds_trait = ["dep:smart-leds-trait"]
 nalgebra = ["dep:nalgebra"]

@@ -4,7 +4,7 @@
 
 use alloc::ffi::CString;
 
-use no_std_io::io;
+use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
 use vex_sdk::{
     vexDeviceGenericRadioConnection, vexDeviceGenericRadioLinkStatus, vexDeviceGenericRadioReceive,
@@ -96,17 +96,18 @@ impl RadioLink {
     }
 }
 
-impl io::Read for RadioLink {
+#[cfg(feature = "std")]
+impl std::io::Read for RadioLink {
     /// Read some bytes sent to the radio into the specified buffer, returning
     /// how many bytes were read.
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let is_linked = self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
                 PortError::Disconnected => {
-                    io::Error::new(io::ErrorKind::AddrNotAvailable, "Port does not exist.")
+                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
                 }
-                PortError::IncorrectDevice => io::Error::new(
-                    io::ErrorKind::AddrInUse,
+                PortError::IncorrectDevice => std::io::Error::new(
+                    std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",
                 ),
             },
@@ -114,8 +115,8 @@ impl io::Read for RadioLink {
         })?;
 
         if !is_linked {
-            return Err(io::Error::new(
-                io::ErrorKind::NotConnected,
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
                 "Radio is not linked!",
             ));
         }
@@ -123,8 +124,8 @@ impl io::Read for RadioLink {
         match unsafe {
             vexDeviceGenericRadioReceive(self.device, buf.as_mut_ptr(), buf.len() as u16)
         } {
-            -1 => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
+            -1 => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
                 "Internal read error occurred.",
             )),
             recieved => Ok(recieved as usize),
@@ -132,17 +133,18 @@ impl io::Read for RadioLink {
     }
 }
 
-impl io::Write for RadioLink {
+#[cfg(feature = "std")]
+impl std::io::Write for RadioLink {
     /// Write a buffer into the radio's output buffer, returning how many bytes
     /// were written.
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let is_linked = self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
                 PortError::Disconnected => {
-                    io::Error::new(io::ErrorKind::AddrNotAvailable, "Port does not exist.")
+                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
                 }
-                PortError::IncorrectDevice => io::Error::new(
-                    io::ErrorKind::AddrInUse,
+                PortError::IncorrectDevice => std::io::Error::new(
+                    std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",
                 ),
             },
@@ -150,16 +152,16 @@ impl io::Write for RadioLink {
         })?;
 
         if !is_linked {
-            return Err(io::Error::new(
-                io::ErrorKind::NotConnected,
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
                 "Radio is not linked!",
             ));
         }
 
         match unsafe { vexDeviceGenericRadioTransmit(self.device, buf.as_ptr(), buf.len() as u16) }
         {
-            -1 => Err(io::Error::new(
-                io::ErrorKind::Other,
+            -1 => Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
                 "Internal write error occurred.",
             )),
             written => Ok(written as usize),
@@ -169,21 +171,21 @@ impl io::Write for RadioLink {
     /// This function does nothing.
     ///
     /// VEXLink immediately sends and clears data sent into the write buffer.
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> std::io::Result<()> {
         if !self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
                 PortError::Disconnected => {
-                    io::Error::new(io::ErrorKind::AddrNotAvailable, "Port does not exist.")
+                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
                 }
-                PortError::IncorrectDevice => io::Error::new(
-                    io::ErrorKind::AddrInUse,
+                PortError::IncorrectDevice => std::io::Error::new(
+                    std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",
                 ),
             },
             _ => unreachable!(),
         })? {
-            return Err(io::Error::new(
-                io::ErrorKind::NotConnected,
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotConnected,
                 "Radio is not linked!",
             ));
         }
@@ -200,6 +202,10 @@ impl SmartDevice for RadioLink {
     fn device_type(&self) -> SmartDeviceType {
         SmartDeviceType::GenericSerial
     }
+}
+
+impl ErrorType for RadioLink {
+    type Error = LinkError;
 }
 
 /// The type of a radio link being established.
@@ -242,4 +248,11 @@ pub enum LinkError {
         /// The source of the error.
         source: PortError,
     },
+}
+
+
+impl embedded_io::Error for LinkError {
+    fn kind(&self) -> embedded_io::ErrorKind {
+        embedded_io::ErrorKind::Other
+    }
 }

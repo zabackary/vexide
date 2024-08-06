@@ -14,7 +14,7 @@
 //!   battery.
 //! - [`controller`] provides types for interacting with the V5 controller.
 
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 
