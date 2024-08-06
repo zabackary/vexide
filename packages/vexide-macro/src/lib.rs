@@ -43,54 +43,6 @@ fn verify_function_sig(sig: &Signature) -> Result<(), syn::Error> {
     }
 }
 
-fn create_main_wrapper(inner: ItemFn, banner: bool) -> proc_macro2::TokenStream {
-    match verify_function_sig(&inner.sig) {
-        Ok(_) => {}
-        Err(e) => return e.to_compile_error(),
-    }
-    let banner_arg = if banner {
-        quote! { true }
-    } else {
-        quote! { false }
-    };
-    let inner_ident = inner.sig.ident.clone();
-    let ret_type = match &inner.sig.output {
-        syn::ReturnType::Default => quote! { () },
-        syn::ReturnType::Type(_, ty) => quote! { #ty },
-    };
-
-    quote! {
-        fn main() -> #ret_type {
-            #inner
-
-            ::vexide::async_runtime::__internal_entrypoint_task::<#banner_arg>();
-            ::vexide::async_runtime::block_on(
-                #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())
-            )
-        }
-    }
-}
-
-fn create_code_sig(opts: MacroOpts) -> proc_macro2::TokenStream {
-    let code_signature = if let Some(code_sig) = opts.code_sig {
-        quote! { #code_sig }
-    } else {
-        quote! {  ::vexide::core::program::CodeSignature::new(
-            ::vexide::core::program::ProgramType::User,
-            ::vexide::core::program::ProgramOwner::Partner,
-            ::vexide::core::program::ProgramFlags::empty(),
-        ) }
-    };
-
-    quote! {
-        const _: () = {
-            #[link_section = ".code_signature"]
-            #[used] // This is needed to prevent the linker from removing this object in release builds
-            static CODE_SIGNATURE: ::vexide::core::program::CodeSignature = #code_signature;
-        };
-    }
-}
-
 /// Marks a function as the entrypoint for a vexide program. When the program is started,
 /// the `main` function will be called with a single argument of type `Peripherals` which
 /// allows access to device peripherals like motors, sensors, and the display.
@@ -104,7 +56,6 @@ fn create_code_sig(opts: MacroOpts) -> proc_macro2::TokenStream {
 ///
 /// - `banner`: A boolean value that toggles the vexide startup banner printed over serial.
 ///   When `false`, the banner will be not displayed.
-/// - `code_sig`: Allows using a custom `CodeSignature` struct to configure program behavior.
 ///
 /// # Examples
 ///
@@ -133,38 +84,37 @@ fn create_code_sig(opts: MacroOpts) -> proc_macro2::TokenStream {
 ///    println!("This is the only serial output from this program!")
 /// }
 /// ```
-///
-/// A custom code signature may be used to further configure the behavior of the program.
-///
-/// ```ignore
-/// # #![no_std]
-/// # #![no_main]
-/// # use vexide::prelude::*;
-/// # use vexide::startup::{CodeSignature, ProgramFlags, ProgramOwner, ProgramType};
-/// static CODE_SIG: CodeSignature = CodeSignature::new(
-///     ProgramType::User,
-///     ProgramOwner::Partner,
-///     ProgramFlags::empty(),
-/// );
-/// #[vexide::main(code_sig = CODE_SIG)]
-/// async fn main(_p: Peripherals) {
-///    println!("Hello world!")
-/// }
-/// ```
 #[proc_macro_attribute]
 pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
-    let item = parse_macro_input!(item as ItemFn);
+    let inner = parse_macro_input!(item as ItemFn);
     let attrs = parse_macro_input!(attrs as Attrs);
     let opts = MacroOpts::from(attrs);
 
-    let main_fn = create_main_wrapper(item, opts.banner);
-    let code_sig = create_code_sig(opts);
+    match verify_function_sig(&inner.sig) {
+        Ok(_) => {}
+        Err(e) => return e.to_compile_error().into(),
+    }
+    let banner_arg = if opts.banner {
+        quote! { true }
+    } else {
+        quote! { false }
+    };
+    let inner_ident = inner.sig.ident.clone();
+    let ret_type = match &inner.sig.output {
+        syn::ReturnType::Default => quote! { () },
+        syn::ReturnType::Type(_, ty) => quote! { #ty },
+    };
 
     quote! {
-        #main_fn
-        #code_sig
-    }
-    .into()
+        fn main() -> #ret_type {
+            #inner
+
+            ::vexide::async_runtime::__internal_entrypoint_task::<#banner_arg>();
+            ::vexide::async_runtime::block_on(
+                #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())
+            )
+        }
+    }.into()
 }
 
 #[cfg(test)]
