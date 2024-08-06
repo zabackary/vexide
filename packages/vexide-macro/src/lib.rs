@@ -43,11 +43,16 @@ fn verify_function_sig(sig: &Signature) -> Result<(), syn::Error> {
     }
 }
 
-fn create_main_wrapper(inner: ItemFn) -> proc_macro2::TokenStream {
+fn create_main_wrapper(inner: ItemFn, banner: bool) -> proc_macro2::TokenStream {
     match verify_function_sig(&inner.sig) {
         Ok(_) => {}
         Err(e) => return e.to_compile_error(),
     }
+    let banner_arg = if banner {
+        quote! { true }
+    } else {
+        quote! { false }
+    };
     let inner_ident = inner.sig.ident.clone();
     let ret_type = match &inner.sig.output {
         syn::ReturnType::Default => quote! { () },
@@ -58,6 +63,7 @@ fn create_main_wrapper(inner: ItemFn) -> proc_macro2::TokenStream {
         fn main() -> #ret_type {
             #inner
 
+            ::vexide::async_runtime::__internal_entrypoint_task::<#banner_arg>();
             ::vexide::async_runtime::block_on(
                 #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())
             )
@@ -151,7 +157,7 @@ pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = parse_macro_input!(attrs as Attrs);
     let opts = MacroOpts::from(attrs);
 
-    let main_fn = create_main_wrapper(item);
+    let main_fn = create_main_wrapper(item, opts.banner);
     let code_sig = create_code_sig(opts);
 
     quote! {

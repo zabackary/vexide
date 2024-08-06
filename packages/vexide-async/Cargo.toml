@@ -26,6 +26,7 @@ vexide-core = { version = "0.3.0", path = "../vexide-core" }
 waker-fn = "1.1.1"
 vex-sdk = "0.17.0"
 critical-section = { version = "1.1.2", features = ["restore-state-bool"] }
+no_std_io = { version = "0.6.0", features = ["alloc"] }
 
 [lints]
 workspace = true
