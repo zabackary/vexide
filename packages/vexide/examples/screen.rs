@@ -1,12 +1,9 @@
-#![no_main]
-#![no_std]
-
-use core::{fmt::Write, time::Duration};
-
 use vexide::{
     devices::screen::{Rect, Text, TextSize},
     prelude::*,
 };
+
+use std::{fmt::Write, time::Duration};
 
 #[vexide::main]
 async fn main(peripherals: Peripherals) {
