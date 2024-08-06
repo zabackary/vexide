@@ -10,12 +10,10 @@
 //! - Program control: [`program`]
 
 #![no_std]
-#![feature(never_type)]
-#![feature(asm_experimental_arch)]
+#![feature(never_type, asm_experimental_arch)]
 
 pub mod competition;
 pub mod critical_section;
-pub mod float;
 pub mod io;
 pub mod program;
 pub mod sync;

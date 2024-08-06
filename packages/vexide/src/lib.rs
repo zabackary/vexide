@@ -18,7 +18,6 @@
 //! - [`vexide-core`](https://docs.rs/vexide_core) provides lowlevel core functionality for programs, such as allocators, synchronization primitives, serial printing, I/O and timers.
 //! - [`vexide-devices`](https://docs.rs/vexide_devices) contains all device-related bindings for things like motors and sensors.
 //! - [`vexide-async`](https://docs.rs/vexide_async) implements our cooperative async runtime as well as several important async futures.
-//! - [`vexide-startup`](https://docs.rs/vexide_startup) contains bare-metal startup code required to get freestanding user programs running on the Brain.
 //! - [`vexide-graphics`](https://docs.rs/vexide_graphics) implements graphics drivers for some popular embedded Rust graphics libraries like [Slint] and [`embedded-graphics`].
 //! - [`vexide-macro`](https://docs.rs/vexide_macro) contains the source code for the `#[vexide::main]` proc-macro.
 //!
@@ -49,10 +48,6 @@ pub use vexide_graphics as graphics;
 pub use vexide_macro as r#macro;
 #[cfg(feature = "macro")]
 pub use vexide_macro::main;
-#[cfg(feature = "panic")]
-pub use vexide_panic as panic;
-#[cfg(feature = "startup")]
-pub use vexide_startup as startup;
 
 /// Commonly used features of vexide.
 /// This module is meant to be glob imported.
@@ -66,7 +61,6 @@ pub mod prelude {
     #[cfg(feature = "core")]
     pub use vexide_core::{
         competition::{Compete, CompeteExt, CompetitionRuntime},
-        float::Float,
         io::{BufRead, Read, Seek, Write},
     };
     #[cfg(feature = "devices")]
