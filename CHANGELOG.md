@@ -25,6 +25,7 @@ Before releasing:
 
 - Added support for the V5 GPS Sensor (#79)
 - Added support for the V5 AI Vision Sensor (#58)
+- Added FOV constants to the Vision Sensor (#58)
 
 ### Fixed
 
