@@ -1,9 +1,9 @@
+use std::{boxed::Box, sync::Arc, vec::Vec};
+
 use vexide::{
     core::sync::{Barrier, Condvar, LazyLock, Mutex, RwLock},
     prelude::*,
 };
-
-use std::{boxed::Box, sync::Arc, vec::Vec};
 
 static LAZY: LazyLock<Box<u32>> = LazyLock::new(|| Box::new(42));
 

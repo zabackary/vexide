@@ -102,9 +102,10 @@ impl std::io::Read for RadioLink {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let is_linked = self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
-                PortError::Disconnected => {
-                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
-                }
+                PortError::Disconnected => std::io::Error::new(
+                    std::io::ErrorKind::AddrNotAvailable,
+                    "Port does not exist.",
+                ),
                 PortError::IncorrectDevice => std::io::Error::new(
                     std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",
@@ -139,9 +140,10 @@ impl std::io::Write for RadioLink {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let is_linked = self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
-                PortError::Disconnected => {
-                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
-                }
+                PortError::Disconnected => std::io::Error::new(
+                    std::io::ErrorKind::AddrNotAvailable,
+                    "Port does not exist.",
+                ),
                 PortError::IncorrectDevice => std::io::Error::new(
                     std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",
@@ -173,9 +175,10 @@ impl std::io::Write for RadioLink {
     fn flush(&mut self) -> std::io::Result<()> {
         if !self.is_linked().map_err(|e| match e {
             LinkError::Port { source } => match source {
-                PortError::Disconnected => {
-                    std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "Port does not exist.")
-                }
+                PortError::Disconnected => std::io::Error::new(
+                    std::io::ErrorKind::AddrNotAvailable,
+                    "Port does not exist.",
+                ),
                 PortError::IncorrectDevice => std::io::Error::new(
                     std::io::ErrorKind::AddrInUse,
                     "Port is in use as another device.",

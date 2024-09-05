@@ -103,7 +103,6 @@ pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
         quote! { ::vexide::banner::print(); }
     });
 
-
     quote! {
         fn main() -> #ret_type {
             #inner
@@ -114,7 +113,8 @@ pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
                 #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())
             )
         }
-    }.into()
+    }
+    .into()
 }
 
 #[cfg(test)]
@@ -151,14 +151,10 @@ mod test {
 
     #[test]
     fn toggles_banner_using_parsed_opts() {
-        let entrypoint = make_entrypoint(MacroOpts {
-            banner: false,
-        });
+        let entrypoint = make_entrypoint(MacroOpts { banner: false });
         assert!(entrypoint.to_string().contains("false"));
         assert!(!entrypoint.to_string().contains("true"));
-        let entrypoint = make_entrypoint(MacroOpts {
-            banner: true,
-        });
+        let entrypoint = make_entrypoint(MacroOpts { banner: true });
         assert!(entrypoint.to_string().contains("true"));
         assert!(!entrypoint.to_string().contains("false"));
     }

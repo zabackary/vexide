@@ -2,7 +2,6 @@
 
 extern crate alloc;
 use alloc::{boxed::Box, rc::Rc};
-use vex_sdk::vexSystemHighResTimeGet;
 use core::{cell::RefCell, time::Duration};
 
 use slint::{
@@ -12,6 +11,7 @@ use slint::{
     },
     LogicalPosition, PhysicalPosition, PhysicalSize, Rgb8Pixel,
 };
+use vex_sdk::vexSystemHighResTimeGet;
 use vexide_devices::{
     color::Rgb,
     screen::{Rect, Screen},

@@ -18,9 +18,7 @@ pub struct MacroOpts {
 
 impl Default for MacroOpts {
     fn default() -> Self {
-        Self {
-            banner: true,
-        }
+        Self { banner: true }
     }
 }
 
