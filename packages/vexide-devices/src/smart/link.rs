@@ -206,10 +206,6 @@ impl SmartDevice for RadioLink {
     }
 }
 
-impl ErrorType for RadioLink {
-    type Error = LinkError;
-}
-
 /// The type of a radio link being established.
 ///
 /// VEXLink is a point-to-point connection, with one "manager" robot and

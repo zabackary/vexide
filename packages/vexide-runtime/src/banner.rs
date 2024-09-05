@@ -1,9 +1,12 @@
+//! vexide startup banner
+
 use std::time::Duration;
 
 use vex_sdk::{
     vexBatteryCapacityGet, vexCompetitionStatus, vexSystemPowerupTimeGet, vexSystemVersion,
 };
 
+#[allow(unused)]
 macro_rules! ansi_rgb {
     ($r:expr, $g:expr, $b:expr) => {
         concat!("\x1B[38;2;", $r, ";", $g, ";", $b, "m")
@@ -25,7 +28,7 @@ struct BannerTheme {
     pub metadata_key: &'static str,
 }
 
-pub const THEME_DEFAULT: BannerTheme = BannerTheme {
+const THEME_DEFAULT: BannerTheme = BannerTheme {
     emoji: "🦀",
     logo_primary: [
         ansi_rgb_bold!(210, 15, 57),
@@ -41,6 +44,9 @@ pub const THEME_DEFAULT: BannerTheme = BannerTheme {
     metadata_key: "[1;33m",
 };
 
+/// Prints the startup banner to [`Stdout`].
+///
+/// This function is for internal use in vexide's `#[vexide::main]` macro.
 #[inline]
 pub fn print() {
     const VEXIDE_VERSION: &str = "0.3.0";
