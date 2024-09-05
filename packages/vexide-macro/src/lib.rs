@@ -94,24 +94,21 @@ pub fn main(attrs: TokenStream, item: TokenStream) -> TokenStream {
         Ok(_) => {}
         Err(e) => return e.to_compile_error().into(),
     }
-    let banner_arg = if opts.banner {
-        quote! { true }
-    } else {
-        quote! { false }
-    };
     let inner_ident = inner.sig.ident.clone();
     let ret_type = match &inner.sig.output {
         syn::ReturnType::Default => quote! { () },
         syn::ReturnType::Type(_, ty) => quote! { #ty },
     };
+    let banner_print = opts.banner.then(|| {
+        quote! { ::vexide::banner::print(); }
+    });
+
 
     quote! {
         fn main() -> #ret_type {
             #inner
 
-            unsafe {
-                ::vexide::init_runtime::<#banner_arg>();
-            }
+            #banner_print
 
             ::vexide::block_on(
                 #inner_ident(::vexide::devices::peripherals::Peripherals::take().unwrap())

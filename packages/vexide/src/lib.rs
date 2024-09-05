@@ -41,7 +41,7 @@ pub use vexide_runtime::{
     task,
     time,
     block_on,
-    init_runtime,
+    banner,
 };
 #[cfg(feature = "devices")]
 pub use vexide_devices as devices;
