@@ -2,7 +2,6 @@
 //!
 //! Provides support for using [`SmartPort`]s as generic serial communication devices.
 
-use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
 use vex_sdk::{
     vexDeviceGenericSerialBaudrate, vexDeviceGenericSerialEnable, vexDeviceGenericSerialFlush,
@@ -308,10 +307,4 @@ pub enum SerialError {
         /// The source of the error.
         source: PortError,
     },
-}
-
-impl embedded_io::Error for SerialError {
-    fn kind(&self) -> embedded_io::ErrorKind {
-        embedded_io::ErrorKind::Other
-    }
 }

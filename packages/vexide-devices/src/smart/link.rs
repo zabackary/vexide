@@ -4,7 +4,6 @@
 
 use alloc::ffi::CString;
 
-use embedded_io::{ErrorType, Read, Write};
 use snafu::Snafu;
 use vex_sdk::{
     vexDeviceGenericRadioConnection, vexDeviceGenericRadioLinkStatus, vexDeviceGenericRadioReceive,
@@ -248,11 +247,4 @@ pub enum LinkError {
         /// The source of the error.
         source: PortError,
     },
-}
-
-
-impl embedded_io::Error for LinkError {
-    fn kind(&self) -> embedded_io::ErrorKind {
-        embedded_io::ErrorKind::Other
-    }
 }
