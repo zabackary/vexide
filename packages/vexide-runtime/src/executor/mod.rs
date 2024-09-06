@@ -62,21 +62,19 @@ impl Executor {
     }
 
     pub(crate) fn tick(&self) -> bool {
-        critical_section::with(|_| {
-            self.reactor.borrow_mut().tick();
+        self.reactor.borrow_mut().tick();
 
-            let runnable = {
-                let mut queue = self.queue.borrow_mut();
-                queue.pop_front()
-            };
-            match runnable {
-                Some(runnable) => {
-                    runnable.run();
-                    true
-                }
-                None => false,
+        let runnable = {
+            let mut queue = self.queue.borrow_mut();
+            queue.pop_front()
+        };
+        match runnable {
+            Some(runnable) => {
+                runnable.run();
+                true
             }
-        })
+            None => false,
+        }
     }
 
     pub fn block_on<R>(&self, mut task: Task<R>) -> R {
